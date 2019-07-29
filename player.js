@@ -5,11 +5,13 @@ module.exports = class Player {
         this.name = name;
         this.kills = 0;
         this.deaths = 0;
+        this.headshots = 0;
         this.is_dead = false;
     }
 
     add_kill(){
         this.kills = this.kills + 1;
+        if(this.getRandomInt(3) == 0) this.headshots = this.headshots + 1;
     }
 
     add_death(){
@@ -27,6 +29,19 @@ module.exports = class Player {
             this.is_dead = true;
             this.add_death();
         }
+    }
+
+    getStats() {
+        return {
+            name: this.name,
+            kills: this.kills,
+            headshots: this.headshots,
+            deaths: this.deaths
+        };
+    }
+
+    getRandomInt(max) {
+        return Math.floor(Math.random() * Math.floor(max));
     }
 
 }

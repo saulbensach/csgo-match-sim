@@ -41,11 +41,23 @@ module.exports = class MatchSimulator {
                 this.player_action(player, enemies);
             })
         }
-        
+    }
+
+    player_action(player, enemies) { 
+        let deals_damage = this.getRandomInt(2) == 0 ? true : false;
+        if(deals_damage) {
+            let not_dead_enemies = enemies.filter(enemy => enemy.is_dead != true);
+            if(not_dead_enemies.length > 0){
+                let enemy = not_dead_enemies[this.getRandomInt(not_dead_enemies.length)];
+                let damage = this.getRandomInt(100) + 1;
+                enemy.deal_damage(damage);
+                if(enemy.is_dead) player.add_kill()
+            }
+            
+        }
     }
 
     simulate() {
-        console.log("Round: "+(this.played_rounds + 1));
         //small chance for planting the bomb
         this.is_bomb_planted = this.getRandomInt(3) == 0 ? true : false;
         this.bomb_defused = false;
@@ -75,29 +87,20 @@ module.exports = class MatchSimulator {
         if(this.is_bomb_planted) {
             if(this.bomb_defused){
                 //CTs won
-                console.log("Team1 wins the round!")
                 this.team1_rounds++; 
             } else {
                 //Bomb exploded
-                console.log("Team2 wins the round!");
                 this.team2_rounds++;
             }
         } else {
             //if bomb is not planted check if all CT were killed
             if(this.players_team1.filter(player => player.is_dead == false).length == 0){
                 //All CTs were killed
-                console.log("Team2 wins the round!");
                 this.team2_rounds++;
             } else {
-                console.log("Team1 wins the round!")
                 this.team1_rounds++;
             }
         }
-
-        console.log("team1");
-        console.log(this.players_team1);
-        console.log("team2");
-        console.log(this.players_team2);
 
         this.played_rounds++;
         if(
@@ -106,9 +109,15 @@ module.exports = class MatchSimulator {
             this.team2_rounds == Math.floor(this.max_rounds / 2) + 1
             ){
             //match ended
-            console.log(`Team1 rounds: ${this.team1_rounds}`);
-            console.log(`Team2 rounds: ${this.team2_rounds}`);
-            
+            const result = {
+                team1_rounds: this.team1_rounds,
+                team2_rounds: this.team2_rounds,
+                team1_stats: this.players_team1.map((e, i) => e.getStats()),
+                team2_stats: this.players_team2.map((e, i) => e.getStats())
+            }
+
+            console.log(result);
+
         } else {
             this.players_team1.forEach(player => player.restore());
             this.players_team2.forEach(player => player.restore());
@@ -117,26 +126,12 @@ module.exports = class MatchSimulator {
         
     }
 
-    player_action(player, enemies) { 
-        let deals_damage = this.getRandomInt(2) == 0 ? true : false;
-        if(deals_damage) {
-            let not_dead_enemies = enemies.filter(enemy => enemy.is_dead != true);
-            if(not_dead_enemies.length > 0){
-                let enemy = not_dead_enemies[this.getRandomInt(not_dead_enemies.length)];
-                let damage = this.getRandomInt(100) + 1;
-                enemy.deal_damage(damage);
-                if(enemy.is_dead) player.add_kill()
-            }
-            
-        }
+    getRandomInt(max) {
+        return Math.floor(Math.random() * Math.floor(max));
     }
 
     toString() {
         return `Max Rounds: ${this.max_rounds}`;
-    }
-
-    getRandomInt(max) {
-        return Math.floor(Math.random() * Math.floor(max));
     }
 
 }
